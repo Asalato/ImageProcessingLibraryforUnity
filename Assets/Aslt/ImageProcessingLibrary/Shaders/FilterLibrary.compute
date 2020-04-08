@@ -1,0 +1,272 @@
+﻿#pragma kernel Gaussian3x3
+#pragma kernel Gaussian5x5
+#pragma kernel Laplacian
+#pragma kernel SMA3x3
+#pragma kernel SMA5x5
+#pragma kernel Median3x3
+#pragma kernel Median5x5
+#pragma kernel Musk
+#pragma kernel Append
+#pragma kernel FixResolution
+#pragma kernel ThresholdFilter3x3
+#pragma kernel ThresholdFilter5x5
+#pragma kernel TransAlpha
+#pragma kernel Create
+#pragma kernel Add
+#pragma kernel MoveChannel
+#pragma kernel Except
+#pragma kernel Override
+#pragma kernel ExtractEdge
+
+Texture2D<float4> Source;
+RWTexture2D<float4> Destination;
+RWTexture2D<float> Destination1Channel;
+
+[numthreads(32,32,1)]
+void Gaussian3x3 (uint3 id : SV_DispatchThreadID)
+{
+    float4 gaussed = Source[int2(id.x - 1, id.y + 1)] / 16 + Source[int2(id.x, id.y + 1)] / 8 + Source[int2(id.x + 1, id.y + 1)] / 16 +
+                     Source[int2(id.x - 1, id.y    )] / 8  + Source[int2(id.x, id.y    )] / 4 + Source[int2(id.x + 1, id.y    )] / 8  +
+                     Source[int2(id.x - 1, id.y - 1)] / 16 + Source[int2(id.x, id.y - 1)] / 8 + Source[int2(id.x + 1, id.y - 1)] / 16;
+    Destination[id.xy] = gaussed;
+}
+
+[numthreads(32,32,1)]
+void Gaussian5x5 (uint3 id : SV_DispatchThreadID)
+{
+    float4 gaussed = Source[int2(id.x - 2, id.y + 2)] / 256 + Source[int2(id.x - 1, id.y + 2)] / 64 + 3 * Source[int2(id.x, id.y + 2)] / 128 + Source[int2(id.x + 1, id.y + 2)] / 64 + Source[int2(id.x + 2, id.y + 2)] / 256 +
+                     Source[int2(id.x - 2, id.y + 1)] / 64  + Source[int2(id.x - 1, id.y + 1)] / 16 + 3 * Source[int2(id.x, id.y + 1)] / 32  + Source[int2(id.x + 1, id.y + 1)] / 16 + Source[int2(id.x + 2, id.y + 1)] / 64  +
+                     3 * Source[int2(id.x - 2, id.y)] / 128 + Source[int2(id.x - 1, id.y)] / 32     + 9 * Source[int2(id.x, id.y)] / 64      + Source[int2(id.x + 1, id.y)] / 16     + 3 * Source[int2(id.x + 2, id.y)] / 128 +
+                     Source[int2(id.x - 2, id.y - 1)] / 64  + Source[int2(id.x - 1, id.y - 1)] / 16 + 3 * Source[int2(id.x, id.y - 1)] / 32  + Source[int2(id.x + 1, id.y - 1)] / 16 + Source[int2(id.x + 2, id.y - 1)] / 64  +
+                     Source[int2(id.x - 2, id.y - 2)] / 256 + Source[int2(id.x - 1, id.y - 2)] / 64 + 3 * Source[int2(id.x, id.y - 2)] / 128 + Source[int2(id.x + 1, id.y - 2)] / 64 + Source[int2(id.x + 2, id.y - 2)] / 256;
+    Destination[id.xy] = gaussed;
+}
+
+[numthreads(32,32,1)]
+void Laplacian (uint3 id : SV_DispatchThreadID)
+{
+    float4 laplaced = Source[int2(id.x - 1, id.y)] + Source[int2(id.x, id.y + 1)] + Source[int2(id.x + 1, id.y)] + Source[int2(id.x, id.y - 1)] - 4 * Source[int2(id.x, id.y)];
+    Destination[id.xy] = laplaced;
+}
+
+[numthreads(32,32,1)]
+void SMA3x3 (uint3 id : SV_DispatchThreadID)
+{
+    float4 sma = Source[int2(id.x - 1, id.y + 1)] / 9 + Source[int2(id.x, id.y + 1)] / 9 + Source[int2(id.x + 1, id.y + 1)] / 9 +
+                 Source[int2(id.x - 1, id.y    )] / 9 + Source[int2(id.x, id.y    )] / 9 + Source[int2(id.x + 1, id.y    )] / 9 +
+                 Source[int2(id.x - 1, id.y - 1)] / 9 + Source[int2(id.x, id.y - 1)] / 9 + Source[int2(id.x + 1, id.y - 1)] / 9;
+    Destination[id.xy] = sma;
+}
+
+[numthreads(32,32,1)]
+void SMA5x5 (uint3 id : SV_DispatchThreadID)
+{
+    float4 sma = Source[int2(id.x - 2, id.y + 2)] / 25 + Source[int2(id.x - 1, id.y + 2)] / 25 + Source[int2(id.x, id.y + 2)] / 25 + Source[int2(id.x + 1, id.y + 2)] / 25 + Source[int2(id.x + 2, id.y + 2)] / 25 +
+                 Source[int2(id.x - 2, id.y + 1)] / 25 + Source[int2(id.x - 1, id.y + 1)] / 25 + Source[int2(id.x, id.y + 1)] / 25 + Source[int2(id.x + 1, id.y + 1)] / 25 + Source[int2(id.x + 2, id.y + 1)] / 25 +
+                 Source[int2(id.x - 2, id.y    )] / 25 + Source[int2(id.x - 1, id.y    )] / 25 + Source[int2(id.x, id.y    )] / 25 + Source[int2(id.x + 1, id.y    )] / 25 + Source[int2(id.x + 2, id.y    )] / 25 +
+                 Source[int2(id.x - 2, id.y - 1)] / 25 + Source[int2(id.x - 1, id.y - 1)] / 25 + Source[int2(id.x, id.y - 1)] / 25 + Source[int2(id.x + 1, id.y - 1)] / 25 + Source[int2(id.x + 2, id.y - 1)] / 25 +
+                 Source[int2(id.x - 2, id.y - 2)] / 25 + Source[int2(id.x - 1, id.y - 2)] / 25 + Source[int2(id.x, id.y - 2)] / 25 + Source[int2(id.x + 1, id.y - 2)] / 25 + Source[int2(id.x + 2, id.y - 2)] / 25;
+    Destination[id.xy] = sma;
+}
+
+float GetGrayScaleFromPhotometry(float3 color)
+{
+    return 0.2126 * color.x + 0.7152 * color.y + 0.0722 * color.z;
+}
+
+float4 GetMid(float4 pix0, float4 pix1, float4 pix2)
+{
+    float left = GetGrayScaleFromPhotometry(pix0.xyz);
+    float mid = GetGrayScaleFromPhotometry(pix1.xyz);
+    float right = GetGrayScaleFromPhotometry(pix2.xyz);
+    if(left > mid)
+    {
+        if(mid > right) return pix1;
+        else if(left > right) return pix2;
+        else return pix0;
+    }
+    else
+    {
+        if(right > mid) return pix1;
+        if(right > left) return pix2;
+        else return pix0;
+    }
+}
+
+[numthreads(32,32,1)]
+void Median3x3 (uint3 id : SV_DispatchThreadID)
+{
+    float4 candUp = GetMid(Source[int2(id.x - 1, id.y + 1)], Source[int2(id.x, id.y + 1)], Source[int2(id.x + 1, id.y + 1)]);
+    float4 candDown = GetMid(Source[int2(id.x - 1, id.y - 1)], Source[int2(id.x, id.y - 1)], Source[int2(id.x + 1, id.y - 1)]);
+    float4 cand0 = GetMid(candUp, Source[int2(id.x - 1, id.y)], Source[int2(id.x + 1, id.y)]);
+    float4 cand1 = GetMid(candDown, Source[int2(id.x - 1, id.y)], Source[int2(id.x + 1, id.y)]);
+    Destination[id.xy] = (cand0 + cand1) / 2;
+}
+
+[numthreads(32,32,1)]
+void Median5x5 (uint3 id : SV_DispatchThreadID)
+{
+    float4 cand0 = GetMid(Source[int2(id.x - 2, id.y + 2)], Source[int2(id.x - 1, id.y + 2)], Source[int2(id.x, id.y + 2)]);
+    float4 cand1 = GetMid(Source[int2(id.x - 2, id.y + 1)], Source[int2(id.x - 1, id.y + 1)], Source[int2(id.x, id.y + 1)]);
+    float4 cand2 = GetMid(Source[int2(id.x + 1, id.y + 2)], Source[int2(id.x + 1, id.y + 1)], Source[int2(id.x + 1, id.y)]);
+    float4 cand3 = GetMid(Source[int2(id.x + 2, id.y + 2)], Source[int2(id.x + 2, id.y + 1)], Source[int2(id.x + 2, id.y)]);
+    float4 cand4 = GetMid(Source[int2(id.x - 2, id.y)], Source[int2(id.x - 2, id.y - 1)], Source[int2(id.x - 2, id.y - 2)]);
+    float4 cand5 = GetMid(Source[int2(id.x - 1, id.y)], Source[int2(id.x - 1, id.y - 1)], Source[int2(id.x - 1, id.y - 2)]);
+    float4 cand6 = GetMid(Source[int2(id.x, id.y - 1)], Source[int2(id.x + 1, id.y - 1)], Source[int2(id.x + 2, id.y - 2)]);
+    float4 cand7 = GetMid(Source[int2(id.x, id.y - 2)], Source[int2(id.x + 1, id.y - 2)], Source[int2(id.x + 2, id.y - 2)]);
+    float4 cand8 = GetMid(cand0, cand1, cand2);
+    float4 cand9 = GetMid(cand3, cand4, cand5);
+    float4 cand10 = GetMid(cand6, cand7, cand8);
+    Destination[id.xy] = GetMid(cand8, cand9, cand10);
+}
+
+Texture2D<float4> Source1;
+
+[numthreads(32,32,1)]
+void Musk (uint3 id : SV_DispatchThreadID)
+{
+    Destination[id.xy] = float4(Source[id.xy].x * Source1[id.xy].x, Source[id.xy].y * Source1[id.xy].x, Source[id.xy].z * Source1[id.xy].x, Source[id.xy].w * Source1[id.xy].x);
+}
+
+[numthreads(32,32,1)]
+void Append (uint3 id : SV_DispatchThreadID)
+{
+    Destination[id.xy] = float4(Source[id.xy].x, Source1[id.xy].x, 0, 1);
+}
+
+int2 resolution;
+int2 dimensions;
+
+[numthreads(32,32,1)]
+void FixResolution (uint3 id : SV_DispatchThreadID)
+{
+    float2 projectedPosition = (float2)id.xy / resolution * dimensions;
+    int2 p0, p1,
+         p2, p3;
+         
+    p0 = int2(floor(projectedPosition.x), ceil(projectedPosition.y));
+    p1 = int2(ceil(projectedPosition.x), ceil(projectedPosition.y));
+    p2 = int2(floor(projectedPosition.x), floor(projectedPosition.y));
+    p3 = int2(ceil(projectedPosition.x), floor(projectedPosition.y));
+    
+    float dist0, dist1,
+          dist2, dist3;
+          
+    dist0 = saturate(1 / distance(projectedPosition, p0));
+    dist1 = saturate(1 / distance(projectedPosition, p1));
+    dist2 = saturate(1 / distance(projectedPosition, p2));
+    dist3 = saturate(1 / distance(projectedPosition, p3));
+    
+    Destination[id.xy] = (Source[p0] * dist0 + Source[p1] * dist1 + Source[p2] * dist2 + Source[p3] * dist3) / (dist0 + dist1 + dist2 + dist3);
+}
+
+int Threshold;
+
+[numthreads(32,32,1)]
+void ThresholdFilter5x5 (uint3 id : SV_DispatchThreadID)
+{
+    int candidate = 24;
+    
+    if(Source[int2(id.x - 2, id.y + 2)].x == 0) --candidate;
+    if(Source[int2(id.x - 1, id.y + 2)].x == 0) --candidate;
+    if(Source[int2(id.x    , id.y + 2)].x == 0) --candidate;
+    if(Source[int2(id.x + 1, id.y + 2)].x == 0) --candidate;
+    if(Source[int2(id.x + 2, id.y + 2)].x == 0) --candidate;
+    if(Source[int2(id.x - 2, id.y + 1)].x == 0) --candidate;
+    if(Source[int2(id.x - 1, id.y + 1)].x == 0) --candidate;
+    if(Source[int2(id.x    , id.y + 1)].x == 0) --candidate;
+    if(Source[int2(id.x + 1, id.y + 1)].x == 0) --candidate;
+    if(Source[int2(id.x + 2, id.y + 1)].x == 0) --candidate;
+    if(Source[int2(id.x - 2, id.y    )].x == 0) --candidate;
+    if(Source[int2(id.x - 1, id.y    )].x == 0) --candidate;
+    if(Source[int2(id.x + 1, id.y    )].x == 0) --candidate;
+    if(Source[int2(id.x + 2, id.y    )].x == 0) --candidate;
+    if(Source[int2(id.x - 2, id.y - 1)].x == 0) --candidate;
+    if(Source[int2(id.x - 1, id.y - 1)].x == 0) --candidate;
+    if(Source[int2(id.x    , id.y - 1)].x == 0) --candidate;
+    if(Source[int2(id.x + 1, id.y - 1)].x == 0) --candidate;
+    if(Source[int2(id.x + 2, id.y - 1)].x == 0) --candidate;
+    if(Source[int2(id.x - 2, id.y - 2)].x == 0) --candidate;
+    if(Source[int2(id.x - 1, id.y - 2)].x == 0) --candidate;
+    if(Source[int2(id.x    , id.y - 2)].x == 0) --candidate;
+    if(Source[int2(id.x + 1, id.y - 2)].x == 0) --candidate;
+    if(Source[int2(id.x + 2, id.y - 2)].x == 0) --candidate;
+    
+    Destination[id.xy] = candidate > Threshold ? float4(1, 1, 1, 1) : float4(0, 0, 0, 0);
+}
+
+[numthreads(32,32,1)]
+void ThresholdFilter3x3 (uint3 id : SV_DispatchThreadID)
+{
+    int candidate = 8;    
+    
+    if(Source[int2(id.x - 1, id.y + 1)].x == 0) --candidate;
+    if(Source[int2(id.x    , id.y + 1)].x == 0) --candidate;
+    if(Source[int2(id.x + 1, id.y + 1)].x == 0) --candidate;
+    if(Source[int2(id.x - 1, id.y    )].x == 0) --candidate;
+    if(Source[int2(id.x + 1, id.y    )].x == 0) --candidate;
+    if(Source[int2(id.x - 1, id.y - 1)].x == 0) --candidate;
+    if(Source[int2(id.x    , id.y - 1)].x == 0) --candidate;
+    if(Source[int2(id.x + 1, id.y - 1)].x == 0) --candidate;
+    
+    Destination[id.xy] = candidate > Threshold ? float4(1, 1, 1, 1) : float4(0, 0, 0, 0);
+}
+
+bool fillAlpha;
+
+[numthreads(32,32,1)]
+void TransAlpha (uint3 id : SV_DispatchThreadID)
+{
+    Destination[id.xy] = float4(Source[id.xy].xyz, fillAlpha ? 1 : 0);
+}
+
+[numthreads(32,32,1)]
+void Create (uint3 id : SV_DispatchThreadID)
+{
+    Destination[id.xy] = float4(0, 0, 0, 0);
+}
+
+[numthreads(32,32,1)]
+void Add (uint3 id : SV_DispatchThreadID)
+{
+    Destination[id.xy] = float4(saturate(Source[id.xy].x + Source1[id.xy].x),
+                                saturate(Source[id.xy].y + Source1[id.xy].y),
+                                saturate(Source[id.xy].z + Source1[id.xy].z),
+                                saturate(Source[id.xy].w + Source1[id.xy].w));
+}
+
+[numthreads(32,32,1)]
+void Override (uint3 id : SV_DispatchThreadID)
+{
+    Destination[id.xy] = Source1[id.xy].w > 0.5 ? Source1[id.xy] : Source[id.xy];
+}
+
+float4 ColorChannel;
+
+[numthreads(32,32,1)]
+void MoveChannel (uint3 id : SV_DispatchThreadID)
+{
+    Destination[id.xy] = Source[id.xy].x < 0.5 ? float4(0, 0, 0, Source[id.xy].x) : ColorChannel;
+}
+
+[numthreads(32,32,1)]
+void Except(uint3 id : SV_DispatchThreadID)
+{
+    Destination[id.xy] = Source1[id.xy].x < 0.5 ? Source[id.xy] : float4(0, 0, 0, 1);
+}
+
+float EdgeThreshold;
+
+[numthreads(32,32,1)]
+void ExtractEdge (uint3 id : SV_DispatchThreadID)
+{
+    // Apply Sobel filter to edge detection
+    float3 sobelX = Source[int2(id.x - 1, id.y + 1)] + 2 * Source[int2(id.x, id.y + 1)] + Source[int2(id.x + 1, id.y + 1)] - Source[int2(id.x - 1, id.y - 1)] - 2 * Source[int2(id.x, id.y - 1)] - Source[int2(id.x + 1, id.y - 1)];
+    float3 sobelY = Source[int2(id.x - 1, id.y + 1)] - Source[int2(id.x + 1, id.y + 1)] + 2 * Source[int2(id.x - 1, id.y)] - 2 * Source[int2(id.x + 1, id.y)] + Source[int2(id.x - 1, id.y - 1)] - Source[int2(id.x - 1, id.y - 1)];
+    
+    // Calculate gradient & angle (TODO: using Canny filtering)
+    float3 gradient = float3(pow(sobelX.x * sobelX.x + sobelY.x * sobelY.x, 0.5), pow(sobelX.y * sobelX.y + sobelY.y * sobelY.y, 0.5), pow(sobelX.z * sobelX.z + sobelY.z * sobelY.z, 0.5));
+    
+    float grayScale = GetGrayScaleFromPhotometry(gradient);
+    Destination1Channel[id.xy] = grayScale > EdgeThreshold ? 1 : 0;
+}
