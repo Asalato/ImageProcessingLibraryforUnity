@@ -8,16 +8,16 @@ You can simple image processing rapidly by using ComputeShader.<br>
 メソッドチェーンのように記述することができ，直感的に書けるのが特徴です．<br>
 You can write like a method chain, so you can write intuitively.<br>
 
-# 導入 / Installation
+## 導入 / Installation
 Releaseのページから最新版をダウンロードし，利用するUnityプロジェクト内で展開してください<br>
 Please download the latest version from the Release page, and deploy it in your Unity project.<br>
 
-# 利用方法 / How to Use
-## 事前準備 / Prepare before Scripting
+## 利用方法 / How to Use
+### 事前準備 / Prepare before Scripting
 利用したいシーン内に `ShaderSettings` のPrefabを置きます．<br>
 Put a Prefab called `ShaderSettings` in the scene you want to use.
 
-## コードの書き方 / How to write codes
+### コードの書き方 / How to write codes
 * 画像処理したいテクスチャをTexture2D等のフォーマットからRenderTexture（ComputeShaderで扱えるフォーマット）に変換します．<br>
 Converts a texture to RenderTexture (a format that can be handled by ComputeShader).
 
