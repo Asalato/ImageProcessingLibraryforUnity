@@ -1,4 +1,4 @@
-# UnityImageProcessingLibrary
+# ImageProcessingLibraryforUnity
 Unityで画像処理を行うためのライブラリ<br>
 A library for image processing in Unity<br>
 <br>
