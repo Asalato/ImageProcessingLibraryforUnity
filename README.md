@@ -9,7 +9,7 @@ You can simple image processing rapidly by using ComputeShader.<br>
 You can write like a method chain, so you can write intuitively.<br>
 
 ## 導入 / Installation
-Releaseのページから最新版をダウンロードし，利用するUnityプロジェクト内で展開してください<br>
+[Release](https://github.com/Asalato/ImageProcessingLibraryforUnity/releases)のページから最新版をダウンロードし，利用するUnityプロジェクト内で展開してください<br>
 Please download the latest version from the Release page, and deploy it in your Unity project.<br>
 
 ## 利用方法 / How to Use
